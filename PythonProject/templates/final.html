@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Final Report · Validator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+    :root {
+      --bg: #0b0f1a;
+      --card: rgba(15, 20, 36, 0.85);
+      --muted: #8a94a7;
+      --accent-start: #4f46e5;
+      --accent-end: #06b6d4;
+      --accent-glow: rgba(79, 70, 229, 0.25);
+      --ok: #10b981;
+      --ok-glow: rgba(16, 185, 129, 0.2);
+      --bad: #ef4444;
+      --bad-glow: rgba(239, 68, 68, 0.15);
+      --glass: rgba(255, 255, 255, 0.03);
+      --gradient-1: linear-gradient(135deg, #4f46e5, #06b6d4, #10b981);
+      --gradient-2: linear-gradient(135deg, rgba(79, 70, 229, 0.9), rgba(6, 182, 212, 0.9));
+      --gradient-3: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(79, 70, 229, 0.9));
+      --gradient-4: linear-gradient(135deg, #ef4444, #dc2626);
+      --gradient-5: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: #e6eef8;
+      font-family: 'Inter', system-ui, sans-serif;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(79, 70, 229, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+      z-index: -1;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.02),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-start), transparent);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 6px 0;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.01em;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 28px 0;
+    }
+
+    .step {
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      transition: all 0.3s ease;
+    }
+
+    .step:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .tick {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .tick.ok {
+      background: var(--gradient-3);
+      color: white;
+      box-shadow: 0 4px 20px var(--ok-glow);
+    }
+
+    .tick.no {
+      background: rgba(255, 255, 255, 0.05);
+      color: #8a94a7;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .btn.primary {
+      background: var(--gradient-2);
+      color: white;
+      box-shadow: 0 6px 24px var(--accent-glow);
+    }
+
+    .btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px var(--accent-glow);
+    }
+
+    .btn.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
+    .btn.disabled:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .report-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      margin-top: 32px;
+      align-items: start;
+    }
+
+    .panel {
+      background: linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: 18px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .panel:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .headline {
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      margin-bottom: 20px;
+    }
+
+    .headline-yes {
+      color: var(--ok);
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .headline-yes::before {
+      content: '✓';
+      background: var(--ok);
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 6px 20px var(--ok-glow);
+    }
+
+    .headline-no {
+      color: var(--bad);
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .headline-no::before {
+      content: '⚠';
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--bad);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .qa-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .qa-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 20px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      transition: all 0.3s ease;
+    }
+
+    .qa-item:hover {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .chip.yes {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 6px 20px var(--ok-glow);
+      border: none;
+    }
+
+    .chip.no {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .small-muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .list {
+      padding-left: 0;
+      margin: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .score-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 32px 24px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(15, 20, 36, 0.9), rgba(10, 15, 30, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .score-num {
+      font-size: 56px;
+      font-weight: 900;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .score-label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    canvas {
+      max-width: 100%;
+      height: 180px;
+    }
+
+    .recommendation {
+      margin: 0;
+      padding: 20px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      transition: all 0.3s ease;
+    }
+
+    .recommendation:hover {
+      background: rgba(255, 255, 255, 0.02);
+      transform: translateX(4px);
+    }
+
+    .recommendation strong {
+      color: var(--accent-start);
+      margin-right: 8px;
+    }
+
+    .validation-circle {
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+
+    .validation-circle svg {
+      transform: rotate(-90deg);
+    }
+
+    .validation-circle-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.05);
+      stroke-width: 8;
+    }
+
+    .validation-circle-fill {
+      fill: none;
+      stroke: url(#gradient);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 565;
+      stroke-dashoffset: 565;
+      transition: stroke-dashoffset 1.5s ease;
+      filter: drop-shadow(0 4px 20px var(--accent-glow));
+    }
+
+    .validation-circle-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .validation-score {
+      font-size: 56px;
+      font-weight: 900;
+      margin: 0;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .validation-label {
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+    }
+
+    .score-category {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+
+    .score-excellent {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1));
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .score-strong {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(5, 150, 105, 0.1));
+      color: #06b6d4;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .score-promising {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1));
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .score-weak {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .score-not-ready {
+      background: linear-gradient(135deg, rgba(100, 116, 139, 0.15), rgba(71, 85, 105, 0.1));
+      color: #94a3b8;
+      border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+
+    details {
+      margin-top: 24px;
+      color: var(--muted);
+    }
+
+    .raw-json {
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+      max-height: 320px;
+      overflow: auto;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+    }
+
+    .section-header {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-header::before {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: var(--gradient-2);
+      border-radius: 2px;
+    }
+
+    .idea-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .idea-card {
+      padding: 20px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      transition: all 0.3s ease;
+    }
+
+    .idea-card:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .idea-card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .idea-card-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e6eef8;
+    }
+
+    .confidence-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .confidence-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .confidence-high {
+      background: var(--ok);
+      box-shadow: 0 0 10px var(--ok-glow);
+    }
+
+    .confidence-medium {
+      background: #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+    }
+
+    .confidence-low {
+      background: var(--bad);
+      box-shadow: 0 0 10px var(--bad-glow);
+    }
+
+    .confidence-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1024px) {
+      .report-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: repeat(2, 1fr); }
+      .idea-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .card { padding: 20px; }
+      .steps { grid-template-columns: 1fr; }
+      .score-num { font-size: 42px; }
+      .headline-yes, .headline-no { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Final Report — Validate & Decide</h1>
+    <p class="muted">Follow the steps to get the final report.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div id="tick-step1" class="tick no">✓</div>
+        <div>
+          <div><strong>Step 1</strong></div>
+          <div class="muted">Get an overview of your idea</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div id="tick-step2" class="tick no">✓</div>
+        <div>
+          <div><strong>Step 2</strong></div>
+          <div class="muted">Post it on Reddit / Twitter</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div id="tick-step3" class="tick no">✓</div>
+        <div>
+          <div><strong>Step 3</strong></div>
+          <div class="muted">Paste post URL & get comment summary</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div id="tick-step4" class="tick no">✓</div>
+        <div>
+          <div><strong>Step 4</strong></div>
+          <div class="muted">Generate final report & decide</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:24px;">
+      <button id="gen-btn" class="btn primary disabled" disabled>Generate Final Report</button>
+      <div class="muted" id="status-text">Checking your summaries…</div>
+      <div style="flex:1"></div>
+    </div>
+
+    <div id="report-area" class="report-grid" style="display:none;">
+      <!-- left column: main content -->
+      <div>
+        <div class="panel">
+          <div id="headline" class="headline"></div>
+
+          <div class="section-header">Idea Overview</div>
+
+          <div id="idea-card">
+            <div class="idea-card" style="grid-column: 1 / -1;">
+              <div class="idea-card-title">The Idea</div>
+              <div id="idea-text" class="idea-card-content"></div>
+            </div>
+
+            <div class="idea-grid">
+              <div class="idea-card">
+                <div class="idea-card-title">Problem</div>
+                <div id="problem-text" class="idea-card-content"></div>
+              </div>
+
+              <div class="idea-card">
+                <div class="idea-card-title">Proposed Solution</div>
+                <div id="solution-text" class="idea-card-content"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:16px"></div>
+
+        <div class="panel">
+          <div class="section-header">Questions & Answers</div>
+          <div class="small-muted" style="margin-bottom: 16px;">Based on user feedback analysis</div>
+
+          <div id="qa" class="qa-list"></div>
+        </div>
+
+        <div style="height:16px"></div>
+
+        <div class="panel">
+          <div class="section-header">Recommendations</div>
+          <div class="small-muted" style="margin-bottom: 16px;">Actionable next steps</div>
+
+          <div id="recommendations" class="list"></div>
+        </div>
+
+        <div style="height:16px"></div>
+
+        <div class="panel">
+          <div class="section-header">Final Thoughts</div>
+          <div id="final-thoughts" class="idea-card-content" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <!-- right column: score -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="panel score-wrap">
+          <div class="score-label">VALIDATION SCORE</div>
+          <div class="validation-circle">
+            <svg viewBox="0 0 200 200">
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#4f46e5" />
+                  <stop offset="50%" stop-color="#06b6d4" />
+                  <stop offset="100%" stop-color="#10b981" />
+                </linearGradient>
+              </defs>
+              <circle class="validation-circle-bg" cx="100" cy="100" r="90"></circle>
+              <circle id="score-ring" class="validation-circle-fill" cx="100" cy="100" r="90"></circle>
+            </svg>
+            <div class="validation-circle-text">
+              <div id="score-num" class="validation-score">—</div>
+              <div id="score-interpretation" class="score-category">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-header">Market Signals</div>
+          <div class="small-muted" style="margin-bottom: 16px;">Analysis from user comments</div>
+
+          <div style="margin-top: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <span class="small-muted">Positive Indicators</span>
+              <span id="positive-count" style="font-weight: 700; color: var(--ok);">—</span>
+            </div>
+            <div style="height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden;">
+              <div id="positive-bar" style="height: 100%; width: 0%; background: var(--gradient-3); border-radius: 4px; transition: width 1s ease;"></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <span class="small-muted">Critical Concerns</span>
+              <span id="negative-count" style="font-weight: 700; color: var(--bad);">—</span>
+            </div>
+            <div style="height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden;">
+              <div id="negative-bar" style="height: 100%; width: 0%; background: var(--gradient-4); border-radius: 4px; transition: width 1s ease;"></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <div class="confidence-indicator">
+              <div id="confidence-dot" class="confidence-dot"></div>
+              <div id="confidence-label" class="confidence-label">Confidence level: —</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-header">Final Decision</div>
+          <div id="decision-text" class="idea-card-content" style="margin-top:12px; line-height: 1.6;">
+            Generate report to see if this idea is worth building.
+          </div>
+          <div id="confidence-bar" style="height: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 2px; margin-top: 16px; overflow: hidden;">
+            <div id="confidence-fill" style="height: 100%; width: 0%; background: var(--gradient-1); border-radius: 2px; transition: width 1.5s ease;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <details id="raw-area" style="margin-top:24px; display:none;">
+      <summary class="muted">Show raw JSON (debug)</summary>
+      <div id="final-json" class="raw-json"></div>
+    </details>
+  </div>
+
+  <script>
+    // Utilities
+    function safeText(v) {
+      if (v === null || v === undefined) return '';
+      return String(v);
+    }
+
+    function yesNoChip(ans) {
+      const el = document.createElement('div');
+      el.className = 'chip ' + (ans === 'yes' ? 'yes' : 'no');
+      el.textContent = (ans === 'yes' ? 'YES' : 'NO');
+      return el;
+    }
+
+    async function checkStatus() {
+      try {
+        const resp = await fetch('/api/final/status', { credentials: 'include' });
+        const data = await resp.json().catch(() => null);
+
+        if (!resp.ok) {
+          document.getElementById('status-text').textContent = 'Please sign in to access final report.';
+          return;
+        }
+
+        const hasAI = data.has_ai_summary;
+        const hasCS = data.has_comment_summary;
+
+        const step1 = document.getElementById('tick-step1');
+        const step2 = document.getElementById('tick-step2');
+        const step3 = document.getElementById('tick-step3');
+        const step4 = document.getElementById('tick-step4');
+
+        if (hasAI) {
+          step1.className = 'tick ok';
+          step2.className = 'tick ok';
+        } else {
+          step1.className = 'tick no';
+          step2.className = 'tick no';
+        }
+
+        if (hasCS) {
+          step3.className = 'tick ok';
+          step4.className = 'tick ok';
+        } else {
+          step3.className = 'tick no';
+          step4.className = 'tick no';
+        }
+
+        const btn = document.getElementById('gen-btn');
+        const statusText = document.getElementById('status-text');
+
+        if (hasAI && hasCS) {
+          btn.disabled = false;
+          btn.classList.remove('disabled');
+          statusText.textContent = 'Ready — generate your final report.';
+          statusText.style.color = '#10b981';
+        } else {
+          btn.disabled = true;
+          btn.classList.add('disabled');
+          if (hasAI) {
+            statusText.textContent = 'Waiting for comment summary (paste post URL & analyze)';
+          } else {
+            statusText.textContent = 'You need an AI summary first (create or validate an idea)';
+          }
+          statusText.style.color = '';
+        }
+
+        window.__final_preview = { ai: data.ai_summary, cs: data.comment_summary };
+      } catch (err) {
+        console.error(err);
+        document.getElementById('status-text').textContent = 'Error checking status.';
+        document.getElementById('status-text').style.color = '#ef4444';
+      }
+    }
+
+    // NEW: Improved score calculation that uses Gemini's validation_score
+    function computeScore(parsed) {
+      // Priority 1: Use validation_score from Gemini if available
+      if (parsed.validation_score !== undefined && parsed.validation_score !== null) {
+        const geminiScore = Number(parsed.validation_score);
+        if (!isNaN(geminiScore) && geminiScore >= 0 && geminiScore <= 100) {
+          return Math.round(geminiScore);
+        }
+      }
+
+      // Priority 2: Calculate from questions_and_answers (5 questions now)
+      const q = parsed.questions_and_answers || {};
+      const questions = Object.values(q);
+
+      if (questions.length === 0) {
+        return 50; // Default score if no questions
+      }
+
+      let yesCount = 0;
+      questions.forEach(item => {
+        if (item.answer && item.answer.toLowerCase() === 'yes') {
+          yesCount++;
+        }
+      });
+
+      // Base score from yes answers (each yes = 20 points)
+      const baseScore = (yesCount / questions.length) * 100;
+
+      // Adjust based on final_verdict
+      let adjustment = 0;
+      if (parsed.final_verdict && parsed.final_verdict.can_build === 'yes') {
+        adjustment = 15;
+      }
+
+      // Adjust based on recommendations length (more recommendations = lower score)
+      const recs = parsed.recommendations || [];
+      if (recs.length > 2) {
+        adjustment -= 5;
+      }
+
+      const finalScore = Math.min(100, Math.max(0, baseScore + adjustment));
+      return Math.round(finalScore);
+    }
+
+    // NEW: Better score interpretation with categories
+    function getScoreCategory(score) {
+      if (score >= 86) return { text: 'EXCELLENT', class: 'score-excellent', confidence: 'High' };
+      if (score >= 71) return { text: 'STRONG', class: 'score-strong', confidence: 'High' };
+      if (score >= 51) return { text: 'PROMISING', class: 'score-promising', confidence: 'Medium' };
+      if (score >= 31) return { text: 'WEAK', class: 'score-weak', confidence: 'Low' };
+      return { text: 'NOT READY', class: 'score-not-ready', confidence: 'Low' };
+    }
+
+    // NEW: Get confidence level color
+    function getConfidenceColor(confidence) {
+      switch(confidence.toLowerCase()) {
+        case 'high': return 'confidence-high';
+        case 'medium': return 'confidence-medium';
+        case 'low': return 'confidence-low';
+        default: return 'confidence-medium';
+      }
+    }
+
+    function updateScoreRing(score) {
+      const ring = document.getElementById('score-ring');
+      if (!ring) return;
+
+      const circumference = 2 * Math.PI * 90;
+      const offset = circumference - (score / 100) * circumference;
+      ring.style.strokeDashoffset = offset;
+    }
+
+    async function generateReport() {
+      const btn = document.getElementById('gen-btn');
+      btn.disabled = true;
+      btn.classList.add('disabled');
+      document.getElementById('status-text').textContent = 'Generating final report…';
+      document.getElementById('status-text').style.color = '#06b6d4';
+
+      try {
+        const resp = await fetch('/api/generate-final-report', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await resp.json().catch(() => null);
+
+        if (!resp.ok) {
+          document.getElementById('status-text').textContent = data && data.error ? data.error : 'Failed to generate report.';
+          document.getElementById('status-text').style.color = '#ef4444';
+          btn.disabled = false;
+          btn.classList.remove('disabled');
+          return;
+        }
+
+        const parsed = data;
+        console.log('Parsed report:', parsed); // For debugging
+
+        // Build UI
+        document.getElementById('report-area').style.display = 'grid';
+        document.getElementById('final-json').textContent = JSON.stringify(parsed, null, 2);
+
+        // Calculate score using NEW method
+        const score = computeScore(parsed);
+        const category = getScoreCategory(score);
+
+        // Headline based on score and verdict
+        const hl = document.getElementById('headline');
+        if (score >= 60 && parsed.final_verdict && parsed.final_verdict.can_build === 'yes') {
+          hl.innerHTML = '<div class="headline-yes">Strong Validation — Build Recommended</div>';
+        } else if (score >= 40) {
+          hl.innerHTML = '<div class="headline-no">Needs Refinement — Validate Further</div>';
+        } else {
+          hl.innerHTML = '<div class="headline-no">Not Viable — Pivot or Re-evaluate</div>';
+        }
+
+        // Idea / Problem / Solution
+        document.getElementById('idea-text').textContent = safeText(parsed.idea || 'No idea provided');
+        document.getElementById('problem-text').textContent = safeText(parsed.problem_faced || 'No problem defined');
+        document.getElementById('solution-text').textContent = safeText(parsed.your_solution || 'No solution proposed');
+
+        // Q&A
+        const qaEl = document.getElementById('qa');
+        qaEl.innerHTML = '';
+        let yesCount = 0;
+        let noCount = 0;
+        const qmap = parsed.questions_and_answers || {};
+        const qkeys = Object.keys(qmap).sort();
+
+        qkeys.forEach(k => {
+          try {
+            const item = qmap[k];
+            const question = item.question || k;
+            const ans = (item.answer || '').toLowerCase();
+            const explain = item.explain || '';
+
+            if (ans === 'yes') yesCount++;
+            if (ans === 'no') noCount++;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'qa-item';
+
+            const left = document.createElement('div');
+            left.style.flex = '1';
+
+            const qtitle = document.createElement('div');
+            qtitle.style.fontWeight = '700';
+            qtitle.style.color = '#f1f5f9';
+            qtitle.style.marginBottom = '4px';
+            qtitle.textContent = question;
+
+            const qexp = document.createElement('div');
+            qexp.className = 'small-muted';
+            qexp.textContent = explain;
+
+            left.appendChild(qtitle);
+            left.appendChild(qexp);
+
+            const right = document.createElement('div');
+            right.style.display = 'flex';
+            right.style.flexDirection = 'column';
+            right.style.alignItems = 'flex-end';
+            right.appendChild(yesNoChip(ans === 'yes' ? 'yes' : 'no'));
+
+            wrapper.appendChild(left);
+            wrapper.appendChild(right);
+            qaEl.appendChild(wrapper);
+          } catch (e) {
+            console.warn('qa render err', e);
+          }
+        });
+
+        // Update signal bars
+        const totalQuestions = Math.max(1, yesCount + noCount);
+        const positivePercent = (yesCount / totalQuestions) * 100;
+        const negativePercent = (noCount / totalQuestions) * 100;
+
+        document.getElementById('positive-count').textContent = `${yesCount} of ${totalQuestions}`;
+        document.getElementById('negative-count').textContent = `${noCount} of ${totalQuestions}`;
+
+        setTimeout(() => {
+          document.getElementById('positive-bar').style.width = `${positivePercent}%`;
+          document.getElementById('negative-bar').style.width = `${negativePercent}%`;
+          document.getElementById('confidence-fill').style.width = `${score}%`;
+        }, 100);
+
+        // Recommendations
+        const recEl = document.getElementById('recommendations');
+        recEl.innerHTML = '';
+        (parsed.recommendations || []).slice(0, 3).forEach((r, i) => {
+          const d = document.createElement('div');
+          d.className = 'recommendation';
+          d.innerHTML = `<strong>${i+1}.</strong> ${safeText(r)}`;
+          recEl.appendChild(d);
+        });
+
+        // Final thoughts
+        document.getElementById('final-thoughts').textContent = safeText(parsed.final_thoughts || '');
+
+        // Update score display
+        document.getElementById('score-num').textContent = score;
+
+        // Update score interpretation with category
+        const scoreInterpretationEl = document.getElementById('score-interpretation');
+        scoreInterpretationEl.textContent = category.text;
+        scoreInterpretationEl.className = `score-category ${category.class}`;
+
+        // Update confidence indicator
+        document.getElementById('confidence-dot').className = `confidence-dot ${getConfidenceColor(category.confidence)}`;
+        document.getElementById('confidence-label').textContent = `Confidence level: ${category.confidence}`;
+
+        // Update the circular progress ring
+        setTimeout(() => updateScoreRing(score), 100);
+
+        // Decision text based on score category
+        const decisionEl = document.getElementById('decision-text');
+        if (score >= 86) {
+          decisionEl.innerHTML = '<span style="color:#10b981">✓ EXCELLENT FIT</span> — Strong market signals. Proceed with building immediately.';
+        } else if (score >= 71) {
+          decisionEl.innerHTML = '<span style="color:#06b6d4">✓ STRONG POTENTIAL</span> — Good validation. Build MVP and gather more feedback.';
+        } else if (score >= 51) {
+          decisionEl.innerHTML = '<span style="color:#f59e0b">⚠ PROMISING BUT NEEDS WORK</span> — Address key concerns before full development.';
+        } else if (score >= 31) {
+          decisionEl.innerHTML = '<span style="color:#ef4444">⚠ WEAK SIGNALS</span> — Significant issues found. Major pivot or revalidation needed.';
+        } else {
+          decisionEl.innerHTML = '<span style="color:#ef4444">✗ NOT VIABLE</span> — Fundamental problems. Consider a different approach.';
+        }
+
+        // Status
+        document.getElementById('status-text').textContent = 'Final report generated successfully.';
+        document.getElementById('status-text').style.color = '#10b981';
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('status-text').textContent = err.message || 'Error generating report.';
+        document.getElementById('status-text').style.color = '#ef4444';
+      } finally {
+        setTimeout(checkStatus, 800);
+      }
+    }
+
+    // Initialize
+    document.getElementById('gen-btn').addEventListener('click', generateReport);
+    checkStatus();
+  </script>
+</body>
+</html>

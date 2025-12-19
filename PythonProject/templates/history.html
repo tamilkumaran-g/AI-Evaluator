@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - Startup Idea Validator</title>
+    <style>
+        /* ============================================
+           HISTORY PAGE - EMBEDDED STYLES
+           ============================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --white: #ffffff;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+            font-size: 1.1rem;
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .history-item {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .history-item h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .history-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .history-content {
+            color: var(--dark);
+            line-height: 1.7;
+        }
+
+        .history-content p {
+            margin-bottom: 1rem;
+        }
+
+        .history-content ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .history-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--light-gray);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .tab-btn:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem 0; }
+            .section { padding: 1.5rem; }
+            .tab-buttons { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section">
+            <div class="section-header">
+                <h2>📚 Your History</h2>
+                <p>View your past ideas, AI summaries, comment analyses, and final reports.</p>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="ideas">💡 Ideas</button>
+                <button class="tab-btn" data-tab="summaries">🤖 AI Summaries</button>
+                <button class="tab-btn" data-tab="comments">💬 Comment Analyses</button>
+                <button class="tab-btn" data-tab="reports">📊 Final Reports</button>
+            </div>
+
+            <div id="loading" class="loading">
+                <p>Loading your history...</p>
+            </div>
+
+            <div id="content" style="display: none;">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const loadingEl = document.getElementById('loading');
+        const contentEl = document.getElementById('content');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+
+        let currentTab = 'ideas';
+        let dataCache = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTab('ideas');
+        });
+
+        // Tab switching
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                switchTab(tab);
+            });
+        });
+
+        async function switchTab(tab) {
+            currentTab = tab;
+            tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+            await loadTab(tab);
+        }
+
+        async function loadTab(tab) {
+            loadingEl.style.display = 'block';
+            contentEl.style.display = 'none';
+
+            try {
+                if (!dataCache[tab]) {
+                    dataCache[tab] = await fetchData(tab);
+                }
+                displayData(tab, dataCache[tab]);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                contentEl.innerHTML = '<div class="no-data">Error loading data. Please try again.</div>';
+            }
+
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+        }
+
+        async function fetchData(tab) {
+            let endpoint;
+            switch (tab) {
+                case 'ideas':
+                    endpoint = '/api/my/ideas';
+                    break;
+                case 'summaries':
+                    endpoint = '/api/my/summaries';
+                    break;
+                case 'comments':
+                    endpoint = '/api/my/comment-summaries';
+                    break;
+                case 'reports':
+                    endpoint = '/api/my/final-reports';
+                    break;
+                default:
+                    return { data: [] };
+            }
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        function displayData(tab, response) {
+            const data = response.data || [];
+
+            if (data.length === 0) {
+                contentEl.innerHTML = '<div class="no-data">No data found for this category.</div>';
+                return;
+            }
+
+            let html = '';
+
+            data.forEach(item => {
+                const createdAt = new Date(item.created_at || item.saved_at).toLocaleDateString();
+                let title = '';
+                let content = '';
+
+                switch (tab) {
+                    case 'ideas':
+                        title = item.idea_input?.idea_name || 'Untitled Idea';
+                        content = `
+                            <div class="history-meta">
+                                <span>📅 ${createdAt}</span>
+                                <span>📍 ${item.idea_input?.region || 'N/A'}</span>
+                                <span>🏢 ${item.idea_input?.market || 'N/A'}</span>
+                            </div>
+                            <div class="history-content">
+                                <p><strong>Problem:</strong> ${item.idea_input?.problem || 'N/A'}</p>
+                                <p><strong>Solution:</strong> ${item.idea_input?.solution || 'N/A'}</p>
+                                <p><strong>Key Features:</strong> ${item.idea_input?.key_features || 'N/A'}</p>
+                                <p><strong>Uniqueness:</strong> ${item.idea_input?.uniqueness || 'N/A'}</p>
+                            </div>
+                        `;
+                        break;
+
+                    case 'summaries':
+                        title = 'AI Generated Summary';
+                        content = `
+                            <div class="history-meta">
+                                <span>📅 ${createdAt}</span>
+                                <span>🎯 Feasibility: ${item.final_summary?.feasibility_score || 'N/A'}</span>
+                                <span>📊 Market Readiness: ${item.final_summary?.market_readiness_score || 'N/A'}</span>
+                            </div>
+                            <div class="history-content">
+                                <p><strong>Overview:</strong> ${item.final_summary?.overview || 'N/A'}</p>
+                                <p><strong>Competitive Advantage:</strong> ${item.final_summary?.competitive_advantage || 'N/A'}</p>
+                                <p><strong>Market Size:</strong> ${item.final_summary?.market_size_estimate || 'N/A'}</p>
+                                ${item.final_summary?.recommendations ? `
+                                    <p><strong>Recommendations:</strong></p>
+                                    <ul>
+                                        ${item.final_summary.recommendations.map(r => `<li>${r}</li>`).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        `;
+                        break;
+
+                    case 'comments':
+                        title = item.post_title || item.raw_post?.post_title || 'Comment Analysis';
+                        content = `
+                            <div class="history-meta">
+                                <span>📅 ${createdAt}</span>
+                                <span>🌐 ${item.platform || 'N/A'}</span>
+                                <span>🔗 <a href="${item.post_url}" target="_blank">View Post</a></span>
+                            </div>
+                            <div class="history-content">
+                                ${item.analysis?.idea ? `<p><strong>Idea:</strong> ${item.analysis.idea}</p>` : ''}
+                                ${item.analysis?.summary ? `<p><strong>Summary:</strong> ${item.analysis.summary}</p>` : ''}
+                                ${item.preview?.idea ? `<p><strong>Preview Idea:</strong> ${item.preview.idea}</p>` : ''}
+                                ${item.preview?.summary ? `<p><strong>Preview Summary:</strong> ${item.preview.summary}</p>` : ''}
+                            </div>
+                        `;
+                        break;
+
+                    case 'reports':
+                        const report = item.generated_report || {};
+                        title = report.idea || 'Final Report';
+                        content = `
+                            <div class="history-meta">
+                                <span>📅 ${createdAt}</span>
+                                <span>🎯 Validation Score: ${report.validation_score || 'N/A'}</span>
+                                <span>📊 Can Build: ${report.final_verdict?.can_build || 'N/A'}</span>
+                            </div>
+                            <div class="history-content">
+                                <p><strong>Idea:</strong> ${report.idea || 'N/A'}</p>
+                                <p><strong>Problem Faced:</strong> ${report.problem_faced || 'N/A'}</p>
+                                <p><strong>Your Solution:</strong> ${report.your_solution || 'N/A'}</p>
+                                ${report.questions_and_answers ? `
+                                    <p><strong>Questions & Answers:</strong></p>
+                                    <ul>
+                                        ${Object.entries(report.questions_and_answers).map(([key, qa]) => `<li><strong>${qa.question}:</strong> ${qa.answer} (${qa.explain})</li>`).join('')}
+                                    </ul>
+                                ` : ''}
+                                <p><strong>Final Verdict:</strong> ${report.final_verdict?.headline || 'N/A'}</p>
+                                ${report.recommendations ? `
+                                    <p><strong>Recommendations:</strong></p>
+                                    <ul>
+                                        ${report.recommendations.map(r => `<li>${r}</li>`).join('')}
+                                    </ul>
+                                ` : ''}
+                                <p><strong>Final Thoughts:</strong> ${report.final_thoughts || 'N/A'}</p>
+                            </div>
+                        `;
+                        break;
+                }
+
+                html += `
+                    <div class="history-item">
+                        <h3>${title}</h3>
+                        ${content}
+                    </div>
+                `;
+            });
+
+            contentEl.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

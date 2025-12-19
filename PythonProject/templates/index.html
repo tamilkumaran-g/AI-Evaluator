@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Startup Idea Validator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at top left, #4f46e5, #020617 55%);
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --accent: #4ade80;
+      --accent-soft: rgba(74, 222, 128, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.25);
+      --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.85);
+      --radius-xl: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      background: #020617;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-image: var(--bg-gradient);
+      background-size: 200% 200%;
+      animation: bgShift 16s ease-in-out infinite, fadeIn 0.6s ease-out forwards;
+      opacity: 0;
+    }
+
+    .page-shell {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 32px 26px 26px;
+      position: relative;
+      overflow: hidden;
+      transform: translateY(4px);
+      animation: floatUpDown 4s ease-in-out infinite;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.24), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.18), transparent 55%);
+      opacity: 0.7;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 1px solid transparent;
+      background: linear-gradient(120deg, rgba(74, 222, 128, 0.2), rgba(59, 130, 246, 0.1)) border-box;
+      mix-blend-mode: screen;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--accent-soft);
+      margin-bottom: 18px;
+      animation: badgeGlow 2.4s ease-in-out infinite;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.35);
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 5vw, 3.1rem);
+      line-height: 1.05;
+      margin-bottom: 14px;
+    }
+
+    h1 strong {
+      font-weight: 800;
+      background: linear-gradient(120deg, #e5e7eb, #f97316, #22c55e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: inline-block;
+      background-size: 200% 200%;
+      animation: textShimmer 8s ease-in-out infinite;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 460px;
+      margin: 0 auto 22px;
+    }
+
+    .metrics-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      margin-bottom: 24px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+      backdrop-filter: blur(10px);
+    }
+
+    .pill span {
+      font-size: 0.78rem;
+      opacity: 0.9;
+    }
+
+    .pill-emoji {
+      font-size: 1.1rem;
+    }
+
+    .cta-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .google-btn {
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 11px 18px;
+      font-size: 0.96rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #f9fafb;
+      color: #111827;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.7);
+      transition:
+        transform 0.14s ease,
+        box-shadow 0.14s ease,
+        filter 0.14s ease,
+        background 0.14s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .google-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.18), transparent 55%);
+      opacity: 0;
+      transition: opacity 0.18s ease;
+    }
+
+    .google-btn:hover::before {
+      opacity: 1;
+    }
+
+    .google-btn:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 20px 46px rgba(15, 23, 42, 0.9);
+      filter: brightness(1.03);
+    }
+
+    .google-btn:active {
+      transform: translateY(0) scale(0.99);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.75);
+      filter: brightness(0.99);
+    }
+
+    .google-icon-wrapper {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
+    .google-helper {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .legal {
+      margin-top: 16px;
+      font-size: 0.74rem;
+      color: #6b7280;
+    }
+
+    .legal a {
+      color: #9ca3af;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes bgShift {
+      0% {
+        background-position: 0% 0%;
+      }
+      50% {
+        background-position: 100% 100%;
+      }
+      100% {
+        background-position: 0% 0%;
+      }
+    }
+
+    @keyframes floatUpDown {
+      0%, 100% {
+        transform: translateY(4px);
+      }
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    @keyframes badgeGlow {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.28);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(74, 222, 128, 0.08);
+      }
+    }
+
+    @keyframes textShimmer {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding-inline: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <!-- Centered content -->
+    <section class="card">
+      <div class="card-inner">
+        <div class="badge">
+          <span class="badge-dot"></span>
+          <span>Idea validation in minutes</span>
+        </div>
+
+        <h1>
+          <strong>Validate Your Idea Before Building</strong>
+        </h1>
+
+        <p class="subtitle">
+          Save months of time from building products people never use. Get fast,
+          honest signals from the market before writing a single line of code.
+        </p>
+
+        <div class="metrics-row">
+          <!-- removed "3-minute validation flow" pill -->
+          <div class="pill">
+            <span class="pill-emoji">🧪</span>
+            <span>Test your ideas before launch</span>
+          </div>
+          <div class="pill">
+            <span class="pill-emoji">⏳</span>
+            <span>Skip months of wasted building</span>
+          </div>
+        </div>
+
+        <div class="cta-group">
+          <button id="googleSignInBtn" class="google-btn" type="button">
+            <span class="google-icon-wrapper">
+              <!-- Minimal Google "G" logo (custom SVG) -->
+              <svg
+                class="google-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 48 48"
+              >
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6 1.54 7.38 2.84l5.4-5.4C33.64 3.34 29.34 1.5 24 1.5 14.96 1.5 7.21 6.98 3.9 14.96l6.82 5.3C12.3 14.48 17.62 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.5 24.5c0-1.64-.15-3.21-.43-4.73H24v9.02h12.7c-.55 2.96-2.24 5.47-4.76 7.16l7.45 5.78C43.92 37.91 46.5 31.73 46.5 24.5z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.72 28.53A14.45 14.45 0 0 1 9.5 24c0-1.57.27-3.09.75-4.53l-6.82-5.3A22.39 22.39 0 0 0 1.5 24c0 3.6.86 7 2.38 10.02l6.84-5.49z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 46.5c5.85 0 10.77-1.93 14.36-5.26l-7.45-5.78C29.02 36.64 26.7 37.5 24 37.5c-6.38 0-11.7-4.98-13.16-11.47l-6.84 5.49C7.21 41.02 14.96 46.5 24 46.5z"
+                />
+              </svg>
+            </span>
+            <span>Continue with Google</span>
+          </button>
+
+          <p class="google-helper">
+            No spam, ever. We only use your Google account to sign you in.
+          </p>
+        </div>
+
+        <p class="legal">
+          By continuing, you agree to our
+          <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+   <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-auth-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCqKzN0AprUVSsAtsdZ00MAczkOPqIdzIg",
+    authDomain: "startup-validator-482ab.firebaseapp.com",
+    projectId: "startup-validator-482ab",
+    storageBucket: "startup-validator-482ab.firebasestorage.app",
+    messagingSenderId: "198701849526",
+    appId: "1:198701849526:web:e59db525c6fa4a820e7f17",
+    measurementId: "G-RV5355MFYM"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  const googleBtn = document.getElementById("googleSignInBtn");
+
+  googleBtn.addEventListener("click", async () => {
+    try {
+      const result = await auth.signInWithPopup(provider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      console.log("Firebase user:", user);
+      console.log("ID token:", idToken.substring(0, 20) + "...");
+
+      const resp = await fetch("/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        console.error("Backend /auth/google error:", data);
+        alert("Server error while logging in. Check Flask console.");
+        return;
+      }
+
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Google sign-in error:", err);
+      alert("Could not sign in with Google.\n\n" + (err.code || "") + " " + (err.message || ""));
+    }
+  });
+</script>

@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startup Idea Validator</title>
+    <style>
+        /* ============================================
+           STARTUP IDEA VALIDATOR - EMBEDDED STYLES
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Colors */
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --white: #ffffff;
+            --border: #e5e7eb;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            
+            /* Transitions */
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .section-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-header p {
+            font-size: 1.1rem;
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        /* Form Styles */
+        .idea-form {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: var(--transition);
+            background: var(--white);
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-actions {
+            text-align: center;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-loader {
+            display: none;
+        }
+        
+        /* Loading Section */
+        .loading-container {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        
+        .loading-spinner {
+            margin-bottom: 2rem;
+        }
+        
+        .spinner {
+            animation: rotate 2s linear infinite;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto;
+        }
+        
+        .spinner .path {
+            stroke: var(--primary);
+            stroke-linecap: round;
+            animation: dash 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes dash {
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+            100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+        }
+        
+        .loading-container h2 {
+            font-size: 1.8rem;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        #loading-status {
+            font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 3rem;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.4;
+            transition: var(--transition);
+        }
+        
+        .step.active {
+            opacity: 1;
+        }
+        
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--gray);
+        }
+        
+        .step.active .step-icon {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+        }
+        
+        .step-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+        
+        /* Results Section */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .results-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .score-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .score-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .score-card h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+        
+        .score-value {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .score-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .content-block {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-block h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+        
+        .content-block p {
+            color: var(--dark);
+            line-height: 1.8;
+            margin-bottom: 0.75rem;
+        }
+        
+        .content-block ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .content-block li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--dark);
+        }
+        
+        .content-block li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .swot-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .swot-box {
+            background: var(--white);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .swot-box.strengths { border-color: var(--success); }
+        .swot-box.weaknesses { border-color: var(--danger); }
+        .swot-box.opportunities { border-color: var(--primary); }
+        .swot-box.threats { border-color: var(--warning); }
+        
+        .swot-box h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--dark);
+        }
+        
+        .competitor-card {
+            background: var(--white);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .competitor-card h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .competitor-card p {
+            font-size: 0.95rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+        }
+        
+        .competitor-meta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem 0; }
+            .section { padding: 1.5rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .swot-grid { grid-template-columns: 1fr; }
+            .results-header { 
+                flex-direction: column; 
+                gap: 1rem; 
+                align-items: flex-start; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- INPUT SECTION (Form) -->
+        <section id="input-section" class="section active">
+            <div class="section-header">
+                <h2>🚀 Validate Your Startup Idea</h2>
+                <p>Provide complete details about your startup idea. Our AI will analyze competitors, market potential, and provide actionable insights.</p>
+            </div>
+            
+            <form id="idea-form" class="idea-form">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="idea_name">💡 Startup Idea Name *</label>
+                        <input type="text" id="idea_name" name="idea_name" required 
+                               placeholder="e.g., TaskMaster Pro">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="problem">🎯 Problem Statement *</label>
+                        <textarea id="problem" name="problem" required 
+                                  placeholder="What specific problem does your startup solve?"></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="why_problem_exists">🔍 Why Does This Problem Exist? *</label>
+                        <textarea id="why_problem_exists" name="why_problem_exists" required 
+                                  placeholder="Explain the root cause of this problem"></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="target_audience">👥 Target Audience *</label>
+                        <input type="text" id="target_audience" name="target_audience" required 
+                               placeholder="e.g., Remote workers, Students, Small businesses">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="solution">✨ Your Solution *</label>
+                        <textarea id="solution" name="solution" required 
+                                  placeholder="How does your product solve the problem?"></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="key_features">⚡ Key Features *</label>
+                        <textarea id="key_features" name="key_features" required 
+                                  placeholder="List 3-5 main features (comma-separated or bullet points)"></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="uniqueness">🌟 What Makes You Unique? *</label>
+                        <textarea id="uniqueness" name="uniqueness" required 
+                                  placeholder="How are you different from existing solutions?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="market">🏢 Market/Industry *</label>
+                        <input type="text" id="market" name="market" required 
+                               placeholder="e.g., EdTech, FinTech, SaaS">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="revenue_model">💰 Revenue Model *</label>
+                        <input type="text" id="revenue_model" name="revenue_model" required 
+                               placeholder="e.g., Subscription, Freemium, Ads">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expected_users">📈 Expected Users (Year 1) *</label>
+                        <input type="text" id="expected_users" name="expected_users" required 
+                               placeholder="e.g., 10,000 users">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="region">🌍 Target Region *</label>
+                        <input type="text" id="region" name="region" required 
+                               placeholder="e.g., India, USA, Global">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="extra_notes">📝 Additional Notes (Optional)</label>
+                        <textarea id="extra_notes" name="extra_notes" 
+                                  placeholder="Any extra context or specific concerns?"></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" id="submit-btn" class="btn btn-primary">
+                        <span class="btn-text">🔍 Validate My Idea</span>
+                        <span class="btn-loader">⏳</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+        
+        <!-- LOADING SECTION -->
+        <section id="loading-section" class="section">
+            <div class="loading-container">
+                <div class="loading-spinner">
+                    <svg class="spinner" viewBox="0 0 50 50">
+                        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                    </svg>
+                </div>
+                <h2>🤖 AI Validation in Progress</h2>
+                <p id="loading-status">Analyzing your startup idea...</p>
+                
+                <div class="progress-steps">
+                    <div class="step active" id="step1">
+                        <div class="step-icon">1</div>
+                        <div class="step-text">Processing Input</div>
+                    </div>
+                    <div class="step" id="step2">
+                        <div class="step-icon">2</div>
+                        <div class="step-text">Researching Market</div>
+                    </div>
+                    <div class="step" id="step3">
+                        <div class="step-icon">3</div>
+                        <div class="step-text">Analyzing Competitors</div>
+                    </div>
+                    <div class="step" id="step4">
+                        <div class="step-icon">4</div>
+                        <div class="step-text">Generating Report</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- RESULTS SECTION -->
+        <section id="results-section" class="section">
+            <div class="results-header">
+                <h2>📊 Validation Report</h2>
+                <button id="new-validation-btn" class="btn btn-secondary">
+                    🔄 New Validation
+                </button>
+            </div>
+            <div id="results-content"></div>
+        </section>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const API_BASE_URL = window.location.origin; // Use same origin as current page
+        
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const inputSection = document.getElementById('input-section');
+        const loadingSection = document.getElementById('loading-section');
+        const resultsSection = document.getElementById('results-section');
+        const ideaForm = document.getElementById('idea-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = submitBtn.querySelector('.btn-text');
+        const btnLoader = submitBtn.querySelector('.btn-loader');
+        const loadingStatus = document.getElementById('loading-status');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+        const resultsContent = document.getElementById('results-content');
+        const newValidationBtn = document.getElementById('new-validation-btn');
+        
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        ideaForm.addEventListener('submit', handleFormSubmit);
+        newValidationBtn.addEventListener('click', resetToForm);
+        
+        // ============================================
+        // MAIN FUNCTIONS
+        // ============================================
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            console.log('📝 Form submitted');
+            
+            const formData = new FormData(ideaForm);
+            const ideaInput = {
+                idea_name: formData.get('idea_name'),
+                problem: formData.get('problem'),
+                why_problem_exists: formData.get('why_problem_exists'),
+                target_audience: formData.get('target_audience'),
+                solution: formData.get('solution'),
+                key_features: formData.get('key_features'),
+                uniqueness: formData.get('uniqueness'),
+                market: formData.get('market'),
+                revenue_model: formData.get('revenue_model'),
+                expected_users: formData.get('expected_users'),
+                region: formData.get('region'),
+                extra_notes: formData.get('extra_notes') || ''
+            };
+            
+            showSection(loadingSection);
+            startLoadingAnimation();
+            
+            try {
+                console.log('🌐 Calling validation API...');
+                const result = await validateIdea(ideaInput);
+                
+                if (result.success) {
+                    console.log('✅ Validation successful');
+                    displayResults(result.data);
+                    showSection(resultsSection);
+                } else {
+                    console.error('❌ Validation failed:', result);
+                    alert('Validation failed. Please try again.');
+                    showSection(inputSection);
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(`Error: ${error.message}`);
+                showSection(inputSection);
+            } finally {
+                resetLoadingAnimation();
+            }
+        }
+        
+        async function validateIdea(ideaInput) {
+            const response = await fetch(`${API_BASE_URL}/api/validate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Important for session cookies
+                body: JSON.stringify(ideaInput)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `API error: ${response.statusText}`);
+            }
+            
+            return await response.json();
+        }
+        
+        function displayResults(data) {
+            console.log('📊 Displaying results');
+            const summary = data.final_summary;
+            const competitors = data.web_research.competitors || [];
+            
+            const html = `
+                <div class="score-cards">
+                    <div class="score-card">
+                        <h3>Feasibility Score</h3>
+                        <div class="score-value">${summary.feasibility_score}</div>
+                        <div class="score-label">out of 100</div>
+                    </div>
+                    <div class="score-card">
+                        <h3>Market Readiness</h3>
+                        <div class="score-value">${summary.market_readiness_score}</div>
+                        <div class="score-label">out of 100</div>
+                    </div>
+                </div>
+                
+                <div class="content-block">
+                    <h3>📋 Executive Summary</h3>
+                    <p>${summary.overview}</p>
+                </div>
+                
+                <div class="content-block">
+                    <h3>🎯 Competitive Advantage</h3>
+                    <p>${summary.competitive_advantage}</p>
+                </div>
+                
+                <div class="content-block">
+                    <h3>📊 Market Size Estimate</h3>
+                    <p>${summary.market_size_estimate}</p>
+                </div>
+                
+                <div class="content-block">
+                    <h3>💪 SWOT Analysis</h3>
+                    <div class="swot-grid">
+                        <div class="swot-box strengths">
+                            <h4>✅ Strengths</h4>
+                            <ul>${summary.swot_analysis.strengths.map(s => `<li>${s}</li>`).join('')}</ul>
+                        </div>
+                        <div class="swot-box weaknesses">
+                            <h4>⚠️ Weaknesses</h4>
+                            <ul>${summary.swot_analysis.weaknesses.map(w => `<li>${w}</li>`).join('')}</ul>
+                        </div>
+                        <div class="swot-box opportunities">
+                            <h4>🚀 Opportunities</h4>
+                            <ul>${summary.swot_analysis.opportunities.map(o => `<li>${o}</li>`).join('')}</ul>
+                        </div>
+                        <div class="swot-box threats">
+                            <h4>⚡ Threats</h4>
+                            <ul>${summary.swot_analysis.threats.map(t => `<li>${t}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-block">
+                    <h3>⚠️ Risk Analysis</h3>
+                    <ul>${summary.risk_analysis.map(r => `<li>${r}</li>`).join('')}</ul>
+                </div>
+                
+                <div class="content-block">
+                    <h3>💡 Recommendations</h3>
+                    <ul>${summary.recommendations.map(r => `<li>${r}</li>`).join('')}</ul>
+                </div>
+                
+                ${competitors.length > 0 ? `
+                <div class="content-block">
+                    <h3>🏢 Identified Competitors (${competitors.length})</h3>
+                    ${competitors.slice(0, 5).map(comp => `
+                        <div class="competitor-card">
+                            <h4>${comp.name}</h4>
+                            <p>${comp.description}</p>
+                            ${comp.features && comp.features.length > 0 ? `
+                            <div class="competitor-meta">
+                                <span>📍 ${comp.region}</span>
+                                <span>💰 ${comp.revenue}</span>
+                                <span>⚡ ${comp.features.length} features</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+
+                <div class="content-block">
+                    <div style="text-align: center;">
+                        <button id="next-btn" class="btn btn-primary" onclick="goToIdeaAnalyzer()">
+                            🚀 Next: Get Reddit & X Strategy
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            resultsContent.innerHTML = html;
+        }
+        
+        function showSection(section) {
+            [inputSection, loadingSection, resultsSection].forEach(s => s.classList.remove('active'));
+            section.classList.add('active');
+        }
+        
+        function startLoadingAnimation() {
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline';
+            
+            const steps = [step1, step2, step3, step4];
+            const statuses = [
+                'Processing your idea...',
+                'Searching for competitors...',
+                'Analyzing market data...',
+                'Generating comprehensive report...'
+            ];
+            
+            let currentStep = 0;
+            const interval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    steps.forEach(s => s.classList.remove('active'));
+                    steps[currentStep].classList.add('active');
+                    loadingStatus.textContent = statuses[currentStep];
+                    currentStep++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 2000);
+            
+            window.loadingInterval = interval;
+        }
+        
+        function resetLoadingAnimation() {
+            clearInterval(window.loadingInterval);
+            submitBtn.disabled = false;
+            btnText.style.display = 'inline';
+            btnLoader.style.display = 'none';
+            [step1, step2, step3, step4].forEach(s => s.classList.remove('active'));
+            step1.classList.add('active');
+            loadingStatus.textContent = 'Analyzing your startup idea...';
+        }
+        
+        function resetToForm() {
+            ideaForm.reset();
+            showSection(inputSection);
+            window.scrollTo(0, 0);
+        }
+
+        function goToIdeaAnalyzer() {
+            const formData = new FormData(ideaForm);
+            const ideaInput = {
+                idea_name: formData.get('idea_name'),
+                problem: formData.get('problem'),
+                why_problem_exists: formData.get('why_problem_exists'),
+                target_audience: formData.get('target_audience'),
+                solution: formData.get('solution'),
+                key_features: formData.get('key_features'),
+                uniqueness: formData.get('uniqueness'),
+                market: formData.get('market'),
+                revenue_model: formData.get('revenue_model'),
+                expected_users: formData.get('expected_users'),
+                region: formData.get('region'),
+                extra_notes: formData.get('extra_notes') || ''
+            };
+
+            // Combine into a single idea string
+            const idea = `${ideaInput.idea_name}: ${ideaInput.problem} ${ideaInput.solution} ${ideaInput.key_features} ${ideaInput.uniqueness}`;
+
+            // Encode and redirect
+            const encodedIdea = encodeURIComponent(idea);
+            window.location.href = `/idea-analyzer?idea=${encodedIdea}`;
+        }
+    </script>
+</body>
+</html>
